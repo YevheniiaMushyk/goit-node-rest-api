@@ -23,12 +23,13 @@ app.use((err, req, res, next) => {
 });
 
 const DB_URI = process.env.DB_URI;
+console.log(process.env.DB_URI);
 
 async function run() {
 	try {
 		await mongoose.connect(DB_URI);
-		app.listen(3000, () => {
-			console.log("Server is running. Use our API on port: 3000");
+		app.listen(8000, () => {
+			console.log("Server is running. Use our API on port: 8000");
 		});
 		console.log("Database connection successfully");
 	} catch (error) {

@@ -1,5 +1,5 @@
 import express from "express";
-import { getAllContacts, getOneContact, deleteContact, createContact, updateContact } from "../controllers/contactsControllers.js";
+import { getAllContacts, getOneContact, deleteContact, createContact, updateContact, updateStatusContact } from "../controllers/contactsControllers.js";
 import { createContactSchema, updateContactSchema, updateFavorite } from "../schemas/contactsSchemas.js";
 import validateBody from "../helpers/validateBody.js";
 
