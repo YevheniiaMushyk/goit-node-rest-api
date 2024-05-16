@@ -23,7 +23,6 @@ app.use((err, req, res, next) => {
 });
 
 const DB_URI = process.env.DB_URI;
-console.log(process.env.DB_URI);
 
 async function run() {
 	try {
@@ -34,8 +33,7 @@ async function run() {
 		console.log("Database connection successfully");
 	} catch (error) {
 		console.error("Database connection failure:", error);
-	} finally {
-		await mongoose.disconnect();
+		process.exit(1);
 	}
 }
 
