@@ -1,6 +1,8 @@
 import HttpError from "../helpers/HttpError.js";
 import { Contact } from "../schemas/contactsSchemas.js";
 
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
+
 const getAllContacts = async (req, res, next) => {
 	try {
 		const resp = await Contact.find();
@@ -12,6 +14,10 @@ const getAllContacts = async (req, res, next) => {
 
 const getOneContact = async (req, res, next) => {
 	const { id } = req.params;
+
+	if (!isValidObjectId(id)) {
+		return next(HttpError(400, "Invalid ID"));
+	}
 
 	try {
 		const resp = await Contact.findById(id);
@@ -26,6 +32,10 @@ const getOneContact = async (req, res, next) => {
 
 const deleteContact = async (req, res, next) => {
 	const { id } = req.params;
+
+	if (!isValidObjectId(id)) {
+		return next(HttpError(400, "Invalid ID"));
+	}
 
 	try {
 		const resp = await Contact.findByIdAndDelete(id);
@@ -57,6 +67,10 @@ const createContact = async (req, res, next) => {
 const updateContact = async (req, res, next) => {
 	const { id } = req.params;
 
+	if (!isValidObjectId(id)) {
+		return next(HttpError(400, "Invalid ID"));
+	}
+
 	const contact = {
 		name: req.body.name,
 		email: req.body.email,
@@ -82,6 +96,10 @@ const updateContact = async (req, res, next) => {
 
 const updateStatusContact = async (req, res, next) => {
 	const { id } = req.params;
+
+	if (!isValidObjectId(id)) {
+		return next(HttpError(400, "Invalid ID"));
+	}
 
 	try {
 		const { favorite } = req.body;
