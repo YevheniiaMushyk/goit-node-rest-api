@@ -1,5 +1,5 @@
 import Joi from "joi";
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 export const createContactSchema = Joi.object({
 	name: Joi.string().required().min(3),
@@ -16,6 +16,9 @@ export const updateContactSchema = Joi.object({
 });
 
 export const updateFavorite = Joi.object({
+	name: Joi.string().min(3),
+	email: Joi.string().email(),
+	phone: Joi.string().min(8),
 	favorite: Joi.boolean().required(),
 });
 
@@ -36,6 +39,10 @@ const contactSchema = new mongoose.Schema(
 		favorite: {
 			type: Boolean,
 			default: false,
+		},
+		owner: {
+			type: Schema.Types.ObjectId,
+			ref: "user",
 		},
 	},
 	{
