@@ -5,7 +5,7 @@ const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 const getAllContacts = async (req, res, next) => {
 	try {
-		const resp = await Contact.find();
+		const resp = await Contact.find({ owner: req.user.id });
 		res.json(resp);
 	} catch (error) {
 		next(error);

@@ -29,12 +29,12 @@ const login = async (req, res, next) => {
 		const user = await User.findOne({ email });
 
 		if (user === null) {
-			return next(HttpError(401, "Email or password is wrong!"));
+			return next(HttpError(401, "Email or password is wrong"));
 		}
 
 		const isMatch = await bcrypt.compare(password, user.password);
 		if (!isMatch) {
-			return next(HttpError(401, "Email or password is wrong!"));
+			return next(HttpError(401, "Email or password is wrong"));
 		}
 
 		const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: "1h" });
@@ -50,7 +50,7 @@ const login = async (req, res, next) => {
 const logout = async (req, res, next) => {
 	try {
 		await User.findByIdAndUpdate(req.user.id, { token: null }, { new: true });
-		res.status(204).end();
+		res.status(204).send({ massage: "No Content" }).end();
 	} catch (error) {
 		next(error);
 	}
