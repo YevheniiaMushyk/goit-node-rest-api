@@ -23,12 +23,8 @@ function auth(req, res, next) {
 		try {
 			const user = await User.findById(decode.id);
 
-			if (user === null) {
+			if (!user || user.token !== token) {
 				return next(HttpError(401, "Not authorized!"));
-			}
-
-			if (user.token !== token) {
-				return next(HttpError(401, "Invalid token!"));
 			}
 
 			req.user = { id: user._id, email: user.email };
