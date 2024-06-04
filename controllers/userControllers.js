@@ -14,10 +14,10 @@ const register = async (req, res, next) => {
 		}
 
 		const hashedPassword = await bcrypt.hash(password, 10);
-		const avatar = gravatar.url(email);
-		const newUser = await User.create({ email, password: hashedPassword });
+		const avatarURL = gravatar.url(email);
+		const newUser = await User.create({ email, password: hashedPassword, avatarURL: avatarURL });
 
-		res.status(201).json({ user: { email: newUser.email, subscription: newUser.subscription } });
+		res.status(201).json({ user: { email: newUser.email, subscription: newUser.subscription, avatarURL: newUser.avatarURL } });
 	} catch (error) {
 		next(error);
 	}
@@ -41,7 +41,7 @@ const login = async (req, res, next) => {
 
 		await User.findByIdAndUpdate(user._id, { token }, { new: true });
 
-		res.status(200).json({ token: token, user: { email: user.email, subscription: user.subscription } });
+		res.status(200).json({ token: token, user: { email: user.email, subscription: user.subscription, avatarURL: user.avatarURL } });
 	} catch (error) {
 		next(error);
 	}
@@ -59,7 +59,7 @@ const logout = async (req, res, next) => {
 const getCurrentUser = async (req, res, next) => {
 	try {
 		const user = await User.findById(req.user.id);
-		res.json({ email: user.email, subscription: user.subscription });
+		res.json({ email: user.email, subscription: user.subscription, avatarURL: user.avatarURL });
 	} catch (error) {
 		next(error);
 	}
