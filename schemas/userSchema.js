@@ -16,6 +16,10 @@ export const subscriptionSchema = Joi.object({
 	subscription: Joi.string().valid("starter", "pro", "business").required(),
 });
 
+export const sendMailSchema = Joi.object({
+	email: Joi.string().email().required(),
+});
+
 const userSchema = new mongoose.Schema(
 	{
 		password: {
@@ -39,6 +43,14 @@ const userSchema = new mongoose.Schema(
 		avatarURL: {
 			type: String,
 			default: null,
+		},
+		verify: {
+			type: Boolean,
+			default: false,
+		},
+		verificationToken: {
+			type: String,
+			required: [true, "Verify token is required"],
 		},
 	},
 	{

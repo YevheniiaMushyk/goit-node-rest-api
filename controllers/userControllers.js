@@ -1,6 +1,9 @@
 import bcrypt from "bcrypt";
+import { nanoid } from "nanoid";
+import "dotenv/config";
 import jwt from "jsonwebtoken";
 import gravatar from "gravatar";
+import nodemailer from "nodemailer";
 import HttpError from "../helpers/HttpError.js";
 import { User } from "../schemas/userSchema.js";
 
@@ -14,10 +17,31 @@ const register = async (req, res, next) => {
 		}
 
 		const hashedPassword = await bcrypt.hash(password, 10);
-		const avatarURL = gravatar.url(email);
-		const newUser = await User.create({ email, password: hashedPassword, avatarURL: avatarURL });
+		const verificationToken = nanoid();
 
-		res.status(201).json({ user: { email: newUser.email, subscription: newUser.subscription, avatarURL: newUser.avatarURL } });
+		const transport = nodemailer.createTransport({
+			host: "sandbox.smtp.mailtrap.io",
+			port: 2525,
+			auth: {
+				user: "eae8d2d40892ab",
+				pass: "90bad4e25ad95f",
+			},
+		});
+
+		const message = {
+			to: email,
+			from: "YevheniiaMushyk@gmail.com",
+			subject: "Welcome",
+			html: `To confirm you email please click on <a href="http://localhost:8080/api/users/verify/${verificationToken}">link</a>`,
+			text: `To confirm you email please open the link http://localhost:8080/api/users/verify/${verificationToken}`,
+		};
+
+		transport.sendMail(message).then(console.log).catch(console.error);
+
+		const avatarURL = gravatar.url(email);
+		const newUser = await User.create({ email, password: hashedPassword, avatarURL: avatarURL, verificationToken });
+
+		res.status(201).json({ user: { email: newUser.email, subscription: newUser.subscription, avatarURL: newUser.avatarURL, verificationToken } });
 	} catch (error) {
 		next(error);
 	}
@@ -35,6 +59,10 @@ const login = async (req, res, next) => {
 		const isMatch = await bcrypt.compare(password, user.password);
 		if (!isMatch) {
 			return next(HttpError(401, "Email or password is wrong"));
+		}
+
+		if (user.verify === false) {
+			return res.status(401).send({ message: "Please verify your email" });
 		}
 
 		const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: "1h" });
@@ -80,4 +108,63 @@ const updateSub = async (req, res, next) => {
 	}
 };
 
-export { register, login, logout, getCurrentUser, updateSub };
+const verifyEmail = async (req, res, next) => {
+	try {
+		const { verificationToken } = req.params;
+
+		const user = await User.findOne({ verificationToken: verificationToken });
+
+		if (user === null) {
+			return res.status(404).send({ message: "User not found" });
+		}
+
+		await User.findByIdAndUpdate(user._id, {
+			verify: true,
+		});
+
+		res.send({ message: "Verification successful" });
+	} catch (error) {
+		next(error);
+	}
+};
+
+const resendEmail = async (req, res, next) => {
+	try {
+		const { email } = req.body;
+
+		const user = await User.findOne({ email });
+
+		if (!user) {
+			return res.status(404).json({ message: "User not found" });
+		}
+
+		if (user.verify) {
+			return res.status(400).json({ message: "Verification has already been passed" });
+		}
+
+		const transport = nodemailer.createTransport({
+			host: "sandbox.smtp.mailtrap.io",
+			port: 2525,
+			auth: {
+				user: "eae8d2d40892ab",
+				pass: "90bad4e25ad95f",
+			},
+		});
+
+		const message = {
+			to: email,
+			from: "YevheniiaMushyk@gmail.com",
+			subject: "Welcome",
+			html: `To confirm you email please click on <a href="http://localhost:8080/api/users/verify/${user.verificationToken}">link</a>`,
+			text: `To confirm you email please open the link http://localhost:8080/api/users/verify/${user.verificationToken}`,
+		};
+
+		transport.sendMail(message).then(console.log).catch(console.error);
+
+		res.json({ message: "Verification email sent" });
+	} catch (error) {
+		next(error);
+	}
+};
+
+export { register, login, logout, getCurrentUser, updateSub, verifyEmail, resendEmail };
