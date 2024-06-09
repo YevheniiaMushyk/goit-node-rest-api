@@ -3,9 +3,9 @@ import { nanoid } from "nanoid";
 import "dotenv/config";
 import jwt from "jsonwebtoken";
 import gravatar from "gravatar";
-import nodemailer from "nodemailer";
 import HttpError from "../helpers/HttpError.js";
 import { User } from "../schemas/userSchema.js";
+import createTransport from "../helpers/sendMail.js";
 
 const register = async (req, res, next) => {
 	try {
@@ -19,14 +19,7 @@ const register = async (req, res, next) => {
 		const hashedPassword = await bcrypt.hash(password, 10);
 		const verificationToken = nanoid();
 
-		const transport = nodemailer.createTransport({
-			host: "sandbox.smtp.mailtrap.io",
-			port: 2525,
-			auth: {
-				user: "eae8d2d40892ab",
-				pass: "90bad4e25ad95f",
-			},
-		});
+		const transport = createTransport();
 
 		const message = {
 			to: email,
@@ -120,6 +113,7 @@ const verifyEmail = async (req, res, next) => {
 
 		await User.findByIdAndUpdate(user._id, {
 			verify: true,
+			verificationToken: null,
 		});
 
 		res.send({ message: "Verification successful" });
@@ -142,14 +136,7 @@ const resendEmail = async (req, res, next) => {
 			return res.status(400).json({ message: "Verification has already been passed" });
 		}
 
-		const transport = nodemailer.createTransport({
-			host: "sandbox.smtp.mailtrap.io",
-			port: 2525,
-			auth: {
-				user: "eae8d2d40892ab",
-				pass: "90bad4e25ad95f",
-			},
-		});
+		const transport = createTransport();
 
 		const message = {
 			to: email,
